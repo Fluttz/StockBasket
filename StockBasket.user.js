@@ -8,6 +8,7 @@
 
 const stocks = ["AAVL","ACFI","BB","BOTT","BUZZ","CHIA","CHPS","COFL","CYBU","DROO","EEEEE","FAER","FISH","HELT","HUW","KAUF","KBAT","KSON","LDSC","LUPE","MPC","MYNC","NAKR","NATN","PDSS","PEOP","POWR","SHRX","SKBD","SKEI","SMUG","SSS","STFP","SWNC","TAG","TNAH","TNPT","TPEG","TPP","TSRC","UNIB","VPTS","YIPP"];
 
+
 function inURL(substr) {
     return document.URL.includes(substr);
 }
@@ -15,12 +16,16 @@ function inURL(substr) {
 function fetchAmount(){
     var bobby = document.getElementsByTagName("tr");
     var stockRecord = [];
+    var currentMax = 0;
+    var saleNotif = "";
+    var ownedList = "";
     for (let i = 0; i < bobby.length; i++) {
         var boop = bobby[i].innerHTML.toString().indexOf("onclick=\"disclose");
         if (boop == 65){
             var nameIndex = bobby[i].innerHTML.toString().indexOf("?type=buy&amp;ticker=")+21;
             var stockName = bobby[i].innerHTML.toString().substring(nameIndex,nameIndex+5);
             if (stockName.indexOf("\"")>-1) stockName = stockName.substring(0,stockName.indexOf("\""));
+            ownedList = ownedList + stockName + " ";
             var priceIndex = bobby[i].innerHTML.toString().indexOf("td align=\"center")+18;
             var stockAmount = bobby[i].innerHTML.toString().substring(priceIndex);
             priceIndex = stockAmount.indexOf("td align=\"center")+18;
@@ -29,6 +34,10 @@ function fetchAmount(){
             stockAmount = stockAmount.substring(priceIndex);
             priceIndex = stockAmount.indexOf("td align=\"center")+18;
             stockAmount = stockAmount.substring(priceIndex);
+            var currentPrice = stockAmount.substring(0,stockAmount.indexOf("</td>"));
+            if (currentPrice >= 60){
+                saleNotif = saleNotif + stockName + " is ready to sell!!!<br>";
+            }
             priceIndex = stockAmount.indexOf("td align=\"center")+18;
             stockAmount = stockAmount.substring(priceIndex);
             priceIndex = stockAmount.indexOf("td align=\"center")+19;
@@ -37,8 +46,14 @@ function fetchAmount(){
             stockAmount = stockAmount.substring(0,priceIndex).replace(",","");
             stockRecord[stocks.indexOf(stockName)]=stockAmount;
         }
+
+
     }
-   window.localStorage.setItem('stockCount', stockRecord);
+    window.localStorage.setItem('stockCount', stockRecord);
+    var notif = document.getElementsByClassName("content");
+    saleNotif = "<center><p style=\"color:red\"><b>"+saleNotif+"</b></p></center>";
+    console.log(ownedList);
+    notif[0].innerHTML = notif[0].innerHTML.replace("<b>here</b></a>.<br>","<b>here</b></a>.<br>"+saleNotif);
 }
 
 function postAmount(){
