@@ -7,7 +7,7 @@
 // ==/UserScript==
 
 const stocks = ["AAVL","ACFI","BB","BOTT","BUZZ","CHIA","CHPS","COFL","CYBU","DROO","EEEEE","FAER","FISH","HELT","HUW","KAUF","KBAT","KSON","LDSC","LUPE","MPC","MYNC","NAKR","NATN","PDSS","PEOP","POWR","SHRX","SKBD","SKEI","SMUG","SSS","STFP","SWNC","TAG","TNAH","TNPT","TPEG","TPP","TSRC","UNIB","VPTS","YIPP"];
-
+const MySellPrice = 60;
 
 function inURL(substr) {
     return document.URL.includes(substr);
@@ -35,7 +35,7 @@ function fetchAmount(){
             priceIndex = stockAmount.indexOf("td align=\"center")+18;
             stockAmount = stockAmount.substring(priceIndex);
             var currentPrice = stockAmount.substring(0,stockAmount.indexOf("</td>"));
-            if (currentPrice >= 60){
+            if (currentPrice >= MySellPrice){
                 saleNotif = saleNotif + stockName + " is ready to sell!!!<br>";
             }
             priceIndex = stockAmount.indexOf("td align=\"center")+18;
