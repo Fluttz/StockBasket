@@ -75,6 +75,12 @@ function postAmount(){
             if (skip){
                 skip = false;
             } else {
+
+                bobby[j].innerHTML = bobby[j].innerHTML.replace("<b>","<i>");
+                bobby[j].innerHTML = bobby[j].innerHTML.replace("<b>","<i>");
+                bobby[j].innerHTML = bobby[j].innerHTML.replace("<b>","<i>");
+                bobby[j].innerHTML = bobby[j].innerHTML.replace("<b>","<i>");
+                bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
                 var nameIndex = bobby[j].innerHTML.toString().indexOf("?type=profile&amp;company")+21;
                 var stockName = bobby[j].innerHTML.toString().substring(nameIndex,nameIndex+20);
                 stockName = stockName.substring(stockName.indexOf("\">")+5);
@@ -92,11 +98,21 @@ function postAmount(){
                     bobby[j].innerHTML = bobby[j].innerHTML.replace(repVolume,"r\">Owned<br><b>"+newVolume+"</b></t");
                 }
                 var repLow = volumeTemp.substring(93);
-                repLow = repLow.substring(repLow.indexOf("<b>"));
+                repLow = repLow.substring(repLow.indexOf("<i>"));
                 var repLow2 = repLow.substring(3);
-                var repPrice = repLow.substring(3,repLow.indexOf("</b>"));
+                var repPrice = repLow.substring(3,repLow.indexOf("</i>"));
                 if (repPrice!=15) {
                     bobby[j].innerHTML = bobby[j].innerHTML.replace(repLow,repLow2);
+                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
+                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
+                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
+                    console.log(repPrice);
+                    console.log(bobby[j].innerHTML);
+                } else {
+                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
+                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
+                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
+
                 }
 
             }
