@@ -4,6 +4,7 @@
 // @description  Displays stocks owned on stock bargain page
 // @match        https://www.neopets.com/stockmarket.phtml?type=portfolio
 // @match        https://www.neopets.com/stockmarket.phtml?type=list&search=%&bargain=true
+// @match        https://www.neopets.com/stockmarket.phtml?type=list&bargain=true
 // ==/UserScript==
 
 const stocks = ["AAVL","ACFI","BB","BOTT","BUZZ","CHIA","CHPS","COFL","CYBU","DROO","EEEEE","FAER","FISH","HELT","HUW","KAUF","KBAT","KSON","LDSC","LUPE","MPC","MYNC","NAKR","NATN","PDSS","PEOP","POWR","SHRX","SKBD","SKEI","SMUG","SSS","STFP","SWNC","TAG","TNAH","TNPT","TPEG","TPP","TSRC","UNIB","VPTS","YIPP"];
