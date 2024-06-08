@@ -106,8 +106,6 @@ function postAmount(){
                     bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
                     bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
                     bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
-                    console.log(repPrice);
-                    console.log(bobby[j].innerHTML);
                 } else {
                     bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
                     bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
