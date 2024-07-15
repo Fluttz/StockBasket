@@ -61,6 +61,11 @@ function postAmount(){
     var stockRecord = [];
     var i = 0;
     var inRecord = window.localStorage.getItem('stockCount');
+    var buyPrice = 15;
+    var perkBar = document.getElementsByClassName("perkBar");
+    if (perkBar[0]!=undefined){
+        buyPrice = 10;
+    }
     while (inRecord.indexOf(",")>-1){
         stockRecord[i] = parseInt(inRecord.substring(0,inRecord.indexOf(",")));
         inRecord = inRecord.substring(inRecord.indexOf(",")+1);
@@ -102,7 +107,7 @@ function postAmount(){
                 repLow = repLow.substring(repLow.indexOf("<i>"));
                 var repLow2 = repLow.substring(3);
                 var repPrice = repLow.substring(3,repLow.indexOf("</i>"));
-                if (repPrice!=15) {
+                if (repPrice!=buyPrice) {
                     bobby[j].innerHTML = bobby[j].innerHTML.replace(repLow,repLow2);
                     bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
                     bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
