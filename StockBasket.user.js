@@ -1,60 +1,79 @@
 // ==UserScript==
 // @name         Stocks in One Basket
+// @version      1.05
 // @author       Flutterz
 // @description  Displays stocks owned on stock bargain page
 // @match        https://www.neopets.com/stockmarket.phtml?type=portfolio
 // @match        https://www.neopets.com/stockmarket.phtml?type=list&search=%&bargain=true
 // @match        https://www.neopets.com/stockmarket.phtml?type=list&bargain=true
+// @match        https://www.neopets.com/stockmarket.phtml?type=buy*
 // ==/UserScript==
 
 const stocks = ["AAVL","ACFI","BB","BOTT","BUZZ","CHIA","CHPS","COFL","CYBU","DROO","EEEEE","FAER","FISH","HELT","HUW","KAUF","KBAT","KSON","LDSC","LUPE","MPC","MYNC","NAKR","NATN","PDSS","PEOP","POWR","SHRX","SKBD","SKEI","SMUG","SSS","STFP","SWNC","TAG","TNAH","TNPT","TPEG","TPP","TSRC","UNIB","VPTS","YIPP"];
 const MySellPrice = 60;
 
-function inURL(substr) {
-    return document.URL.includes(substr);
-}
+mainLoad();
+
 
 function fetchAmount(){
     var bobby = document.getElementsByTagName("tr");
     var stockRecord = [];
-    var currentMax = 0;
     var saleNotif = "";
     var ownedList = "";
-    for (let i = 0; i < bobby.length; i++) {
-        var boop = bobby[i].innerHTML.toString().indexOf("onclick=\"disclose");
-        if (boop == 65){
-            var nameIndex = bobby[i].innerHTML.toString().indexOf("?type=buy&amp;ticker=")+21;
-            var stockName = bobby[i].innerHTML.toString().substring(nameIndex,nameIndex+5);
-            if (stockName.indexOf("\"")>-1) stockName = stockName.substring(0,stockName.indexOf("\""));
-            ownedList = ownedList + stockName + " ";
-            var priceIndex = bobby[i].innerHTML.toString().indexOf("td align=\"center")+18;
-            var stockAmount = bobby[i].innerHTML.toString().substring(priceIndex);
-            priceIndex = stockAmount.indexOf("td align=\"center")+18;
-            stockAmount = stockAmount.substring(priceIndex);
-            priceIndex = stockAmount.indexOf("td align=\"center")+18;
-            stockAmount = stockAmount.substring(priceIndex);
-            priceIndex = stockAmount.indexOf("td align=\"center")+18;
-            stockAmount = stockAmount.substring(priceIndex);
-            var currentPrice = stockAmount.substring(0,stockAmount.indexOf("</td>"));
-            if (currentPrice >= MySellPrice){
+    let stockRows = document.querySelectorAll('td:nth-child(9)');
+    for (let i = 1; i < stockRows.length; i++){
+        let thisRow = stockRows[i].parentElement;
+        let stockAmount = thisRow.children[5].innerText.replaceAll(",","");
+        let stockName = thisRow.children[1].innerText;
+        let currentPrice = thisRow.children[3].innerText;
+        stockName = stockName.substring(0,stockName.indexOf("\n"));
+        ownedList = ownedList + stockName + " ";
+        stockRecord[stocks.indexOf(stockName)]=stockAmount;
+        if (currentPrice >= MySellPrice){
                 saleNotif = saleNotif + stockName + " is ready to sell!!!<br>";
-            }
-            priceIndex = stockAmount.indexOf("td align=\"center")+18;
-            stockAmount = stockAmount.substring(priceIndex);
-            priceIndex = stockAmount.indexOf("td align=\"center")+19;
-            stockAmount = stockAmount.substring(priceIndex);
-            priceIndex = stockAmount.indexOf("\t");
-            stockAmount = stockAmount.substring(0,priceIndex).replace(",","");
-            stockRecord[stocks.indexOf(stockName)]=stockAmount;
         }
-
-
+        thisRow.children[1].children[2].remove();
+        let btn = document.createElement("div");
+        let tab = thisRow.children[0].children[0];
+        btn.innerHTML = "<button style=\"position: relative; top: 5px; font-size: 95%;\" type=\"button\"><b>Sell All</b></button>";
+        btn.onclick = () => {
+            fillSell(thisRow.parentElement.children[1+(i*2)],tab);
+        };
+        thisRow.children[1].append(btn);
     }
     window.localStorage.setItem('stockCount', stockRecord);
-    var notif = document.getElementsByClassName("content");
-    saleNotif = "<center><p style=\"color:red\"><b>"+saleNotif+"</b></p></center>";
+    let div = document.createElement("div");
+    div.innerHTML="<center><p style=\"color:red\"><b>"+saleNotif+"</b></p></center>";
     console.log(ownedList);
-    notif[0].innerHTML = notif[0].innerHTML.replace("<b>here</b></a>.<br>","<b>here</b></a>.<br>"+saleNotif);
+    stockRows[0].parentElement.parentElement.parentElement.before(div);
+}
+
+
+function buyMenu(){
+    let buyBox = document.getElementsByName("amount_shares")[0];
+    buyBox.value = 1000;
+    let tickerBox = document.getElementsByName("ticker_symbol")[0];
+    let priceList = document.getElementsByTagName("marquee")[0].children;
+    for (let i = 0; i < priceList.length; i++){
+        let stockName = priceList[i].innerText.substring(0,priceList[i].innerText.indexOf(" "));
+        if (stockName == tickerBox.value){
+            let stockPrice = priceList[i].innerText.substring(priceList[i].innerText.indexOf(" ")+1);
+            stockPrice = stockPrice.substring(0,stockPrice.indexOf(" "));
+            var buyPrice = 15;
+            var perkBar = document.getElementsByClassName("perkBar");
+            if (perkBar[0]!=undefined){
+                buyPrice = 10;
+            }
+            if (stockPrice != buyPrice){
+                let div = document.createElement("div");
+                div.innerHTML="<center>"+stockName+" price: "+stockPrice+"</center>";
+                div.style="font-weight: bold; color:red; font-size:150%";
+                tickerBox.parentElement.parentElement.parentElement.parentElement.before(div);
+            }
+            break;
+        }
+    }
+
 }
 
 function postAmount(){
@@ -63,76 +82,98 @@ function postAmount(){
     var inRecord = window.localStorage.getItem('stockCount');
     var buyPrice = 15;
     var perkBar = document.getElementsByClassName("perkBar");
+    let buyables = 0;
     if (perkBar[0]!=undefined){
         buyPrice = 10;
     }
+    let displayStyle = document.createElement("style");
+    displayStyle.innerHTML =`
+     .stockBasket{
+            display:none;
+     }
+     `;
+    document.head.appendChild(displayStyle);
     while (inRecord.indexOf(",")>-1){
         stockRecord[i] = parseInt(inRecord.substring(0,inRecord.indexOf(",")));
         inRecord = inRecord.substring(inRecord.indexOf(",")+1);
         i++;
     }
     stockRecord[i] = parseInt(inRecord);
-    var bobby = document.getElementsByTagName("tr");
-    var skip = true;
-    for (let j = 0; j < bobby.length; j++) {
-        var boop = bobby[j].innerHTML.toString().indexOf("?type=profile&amp;company");
-
-        if (boop > -1){
-            if (skip){
-                skip = false;
-            } else {
-
-                bobby[j].innerHTML = bobby[j].innerHTML.replace("<b>","<i>");
-                bobby[j].innerHTML = bobby[j].innerHTML.replace("<b>","<i>");
-                bobby[j].innerHTML = bobby[j].innerHTML.replace("<b>","<i>");
-                bobby[j].innerHTML = bobby[j].innerHTML.replace("<b>","<i>");
-                bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
-                var nameIndex = bobby[j].innerHTML.toString().indexOf("?type=profile&amp;company")+21;
-                var stockName = bobby[j].innerHTML.toString().substring(nameIndex,nameIndex+20);
-                stockName = stockName.substring(stockName.indexOf("\">")+5);
-                if (stockName.indexOf("<")>-1){
-                    stockName = stockName.substring(0,stockName.indexOf("<"));
-                }
-                var volumeIndex = bobby[j].innerHTML.toString().indexOf("\" align=")+17;
-                var volumeTemp = bobby[j].innerHTML.toString().substring(volumeIndex);
-                var volumeIndex2 = volumeTemp.indexOf("<");
-                var repVolume = bobby[j].innerHTML.toString().substring(volumeIndex-3,volumeIndex+volumeIndex2+3);
-                var newVolume = stockRecord[stocks.indexOf(stockName)];
-                if (isNaN(newVolume)){
-                    bobby[j].innerHTML = bobby[j].innerHTML.replace(repVolume,"r\">Owned<br><b>0</b></t");
-                } else {
-                    bobby[j].innerHTML = bobby[j].innerHTML.replace(repVolume,"r\">Owned<br><b>"+newVolume+"</b></t");
-                }
-                var repLow = volumeTemp.substring(93);
-                repLow = repLow.substring(repLow.indexOf("<i>"));
-                var repLow2 = repLow.substring(3);
-                var repPrice = repLow.substring(3,repLow.indexOf("</i>"));
-                if (repPrice!=buyPrice) {
-                    bobby[j].innerHTML = bobby[j].innerHTML.replace(repLow,repLow2);
-                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
-                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
-                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","");
-                } else {
-                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
-                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
-                    bobby[j].innerHTML = bobby[j].innerHTML.replace("<i>","<b>");
-
-                }
-
-            }
-
+    let tableRows = document.querySelectorAll('td:nth-child(7)');
+    for (let i = 1; i < tableRows.length; i++){
+        let thisRow = tableRows[i].parentElement;
+        let stockName = thisRow.children[1].innerText;
+        let stockPrice = thisRow.children[5].innerText;
+        if (stockPrice != buyPrice){
+            thisRow.classList.add("stockBasket");
+            thisRow.children[4].innerHTML = thisRow.children[4].innerHTML.replace("<b>","");
+            thisRow.children[5].innerHTML = thisRow.children[5].innerHTML.replace("<b>","");
+            thisRow.children[6].innerHTML = thisRow.children[6].innerHTML.replace("<b>","");
+        } else {
+            buyables++;
         }
-
+        let ind = stocks.indexOf(stockName);
+        let numOwned = stockRecord[ind];
+        if (isNaN(numOwned))numOwned=0;
+        thisRow.children[3].outerHTML = "<td bgcolor=\"#eeeeff\" align=\"center\">Owned:<br><b>"+numOwned+"</b></td>";
+        let link = thisRow.children[1].children[0].outerHTML;
+        link = "<a href=\"stockmarket.phtml?type=buy&ticker="+thisRow.children[1].innerText+"\">"+link.substring(link.indexOf("<b>"));
+        thisRow.children[1].children[0].outerHTML = link;
     }
-
+    if (buyables == 0){
+        tableRows[0].parentElement.classList.add("stockBasket");
+        let div = document.createElement("div");
+        div.innerHTML="<center>No "+buyPrice+" NP stocks available!</center>";
+        div.style="font-weight: bold; color:red; position:relative;";
+        div.classList.add("noBuyable");
+        tableRows[0].parentElement.after(div);
+    }
+    let btn = document.createElement("div");
+    btn.innerHTML = "<center><button type=\"button\"><b>Show Off-Price Stocks</b></button><center>";
+    btn.onclick = () => {
+        hideButton(displayStyle,btn);
+    };
+    tableRows[0].parentElement.parentElement.parentElement.before(btn);
 }
 
 function mainLoad(){
-    if (inURL("bargain=true")){
+    if (inURL("?type=buy")){
+        buyMenu();
+    } else if (inURL("bargain=true")){
         postAmount();
     } else {
         fetchAmount();
     }
 }
 
-mainLoad();
+function inURL(substr) {
+    return document.URL.includes(substr);
+}
+
+function fillSell(elem,tab){
+    let countCells = elem.getElementsByTagName("input");
+    for (let i = 0; i < countCells.length; i++){
+        let amount = countCells[0].parentElement.parentElement.children[0].innerText.replace(",","");
+        countCells[i].value = amount;
+    }
+    tab.click();
+}
+
+function hideButton(displayStyle,btn){
+    if (displayStyle.innerHTML.includes("noBuyable")){
+        displayStyle.innerHTML =`
+     .stockBasket{
+            display:none;
+     }
+     `;
+        btn.innerHTML = "<center><button type=\"button\"><b>Show Off-Price Stocks</b></button><center>";
+    } else {
+        displayStyle.innerHTML =`
+     .noBuyable{
+            display:none;
+     }
+     `;
+        btn.innerHTML = "<center><button type=\"button\"><b>Hide Off-Price Stocks</b></button><center>";
+    }
+
+}
